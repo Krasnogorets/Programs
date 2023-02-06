@@ -1,15 +1,23 @@
 # простой блек джек
 import random
+import sys
 
-bet = 0
-bet_min = 1
-bet_max = 100
-deposit_max = 1000
-deposit_min = 100
-valid_deposit = [str(i) for i in range(deposit_min, deposit_max+1, 1)]
-valid_bet = [str(i) for i in range(bet_min, bet_max+1, 1)]
-deposit = 0
-fullStack = []
+bet = 1  # int значение ставки
+deposit = 100  # int значение депозита
+bet_min = 1  # значение минимальной ставки
+bet_max = 100  # значение максимальной ставки
+deposit_max = 1000  # значение максимального депозита
+deposit_min = 100  # значение мнимального депозита
+valid_deposit = [str(i) for i in range(deposit_min, deposit_max + 1, 1)]  # строка диапазона депозита для проверки ввода
+valid_bet = [str(i) for i in range(bet_min, bet_max + 1, 1)]  # строка диапазона ставки для проверки ввода
+
+text = ''  # промежуточная переменная для вывода значения карт
+fullStack = []  # строка готового набора номеро карт к раздаче
+playerCurrentCards = []  # строка текущая раздача набора карт игрока
+dilerCurrentCards = []  # строка текущая раздача набора карт дилера
+
+temp_card_picture = []  # промежуточная строка для соотношения карты и номера карты
+temp_card = ''  # промежуточная переменная для вывода значения карт
 dictCardandPoints = {2: '2♥,2♦,2♣,2♠',
                      3: '3♥,3♦,3♣,3♠',
                      4: '4♥,4♦,4♣,4♠',
@@ -19,7 +27,7 @@ dictCardandPoints = {2: '2♥,2♦,2♣,2♠',
                      8: '8♥,8♦,8♣,8♠',
                      9: '9♥,9♦,9♣,9♠',
                      10: '10♥,10♦,10♣,10♠,J♥,J♦,J♣,J♠,D♥,D♦,D♣,D♠,K♥,K♦,K♣,K♠',
-                     11: 'A♥,A♦,A♣,A♠'}
+                     11: 'A♥,A♦,A♣,A♠'}  # словарь соответствия очков карт
 dictCardNum = {1: '2♥', 2: '3♥', 3: '4♥', 4: '5♥', 5: '6♥',
                6: '7♥', 7: '8♥', 8: '9♥', 9: '10♥', 10: 'J♥', 11: 'D♥',
                12: 'K♥', 13: 'A♥', 14: '2♦', 15: '3♦',
@@ -29,16 +37,19 @@ dictCardNum = {1: '2♥', 2: '3♥', 3: '4♥', 4: '5♥', 5: '6♥',
                32: '7♣', 33: '8♣', 34: '9♣', 35: '10♣', 36: 'J♣', 37: 'D♣',
                38: 'K♣', 39: 'A♣', 40: '2♠', 41: '3♠', 42: '4♠', 43: '5♠', 44: '6♠',
                45: '7♠', 46: '8♠', 47: '9♠', 48: '10♠', 49: 'J♠', 50: 'D♠',
-               51: 'K♠', 52: 'A♠'}
+               51: 'K♠', 52: 'A♠'}  # словарь соответствия номера карт и значений
 
+dictCardColor = {1: '2♥, 3♥, 4♥, 5♥, 6♥, 7♥, 8♥, 9♥, 10♥, J♥, D♥,K♥, A♥, 2♦, 3♦, 4♦, 5♦, 6♦, 7♦, 8♦, 9♦,10♦, J♦, D♦, K♦, A♦',
+                 2: '2♣', '3♣', '4♣', '5♣', '6♣','7♣', '8♣', '9♣', '10♣', 'J♣', 'D♣', 'K♣', 'A♣', '2♠', '3♠', '4♠', '5♠', '6♠',
+                    '7♠', '8♠', '9♠', '10♠', 'J♠', 'D♠', 'K♠', 'A♠'}
 
 # methods
 def out_red(text):
-    print("\033[31m\033[47m{}\033[0m".format(text))
+    print("\033[31m\033[47m{}\033[0m".format(*text))
 
 
 def out_black(text):
-    print("\033[30m\033[47m{}\033[0m".format(text))
+    print("\033[30m\033[47m{}\033[0m".format(*text))
 
 
 def fill_random_stack():
@@ -58,12 +69,69 @@ def fill_random_stack():
         temp_rnd_str.clear()
 
 
-while deposit not in valid_deposit:
-    deposit = input(f'Введите размер депозита от {deposit_min} до {deposit_max}: ')
+def first_shuffle():  # первая раздача 4х карт
+
+    for i in range(0, 4):
+        card_number = 0
+
+        if i == 0 or i == 2:
+            card_number = int(fullStack.pop(0))
+            playerCurrentCards.append(get_kard_picture(card_number))
+        else:
+            card_number = int(fullStack.pop(0))
+            dilerCurrentCards.append((get_kard_picture(card_number)))
+
+
+def print_card():
+    for i in playerCurrentCards:
+        i = str(i)
+        if "♥" or "♦" in i:
+            text = i
+            out_red(i)
+            print('красный', i)
+        else:
+            text = i
+            out_black(text)
+            print('черный', i)
+
+
+def bet_input():
+    bet_user_input = []
+    while bet_user_input not in valid_bet:
+        bet_user_input = input(f'Введите вашу ставку от {bet_min} до {bet_max}: ')
+    deposit = int(deposit_user_input)
+    bet = int(bet_user_input)
+    if bet > deposit:
+        print(f'Ставка {bet} больше вашего остатка на депозите {deposit}')
+    else:
+        print(f'Ставка [{bet}] принята!')
+    deposit -= bet
+    print(f'Остаток на депозите : {deposit}')
+
+
+def deposit_check():
+    if deposit < bet_min:
+        print('GAME OVER')
+        # sys.exit()
+
+
+def get_kard_picture(card_number):
+    temp_card_picture.append(dictCardNum[card_number])
+    return temp_card_picture.pop()
+
+
+# end methods
+
+deposit_user_input = []
+
+# while deposit_user_input not in valid_deposit:
+#     deposit_user_input = input(f'Введите размер депозита от {deposit_min} до {deposit_max}: ')
+# bet_input()
+# deposit_check()
 
 if not fullStack:
     fill_random_stack()
-while bet not in valid_bet:
-    bet = input(f'Введите вашу ставку от {bet_min} до {bet_max}: ')
-
-print(f'Ставка [{bet}] принята!')
+first_shuffle()
+print_card()
+print(playerCurrentCards)
+print(dilerCurrentCards)
