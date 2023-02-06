@@ -18,6 +18,9 @@ dilerCurrentCards = []  # строка текущая раздача набор�
 
 temp_card_picture = []  # промежуточная строка для соотношения карты и номера карты
 temp_card = ''  # промежуточная переменная для вывода значения карт
+player_points = 0
+diler_points = 0
+
 dictCardandPoints = {2: '2♥,2♦,2♣,2♠',
                      3: '3♥,3♦,3♣,3♠',
                      4: '4♥,4♦,4♣,4♠',
@@ -39,9 +42,10 @@ dictCardNum = {1: '2♥', 2: '3♥', 3: '4♥', 4: '5♥', 5: '6♥',
                45: '7♠', 46: '8♠', 47: '9♠', 48: '10♠', 49: 'J♠', 50: 'D♠',
                51: 'K♠', 52: 'A♠'}  # словарь соответствия номера карт и значений
 
-dictCardColor = {1: '2♥, 3♥, 4♥, 5♥, 6♥, 7♥, 8♥, 9♥, 10♥, J♥, D♥,K♥, A♥, 2♦, 3♦, 4♦, 5♦, 6♦, 7♦, 8♦, 9♦,10♦, J♦, D♦, K♦, A♦',
-                 2: '2♣', '3♣', '4♣', '5♣', '6♣','7♣', '8♣', '9♣', '10♣', 'J♣', 'D♣', 'K♣', 'A♣', '2♠', '3♠', '4♠', '5♠', '6♠',
-                    '7♠', '8♠', '9♠', '10♠', 'J♠', 'D♠', 'K♠', 'A♠'}
+dictCardColor = {
+    1: '2♥, 3♥, 4♥, 5♥, 6♥, 7♥, 8♥, 9♥, 10♥, J♥, D♥,K♥, A♥, 2♦, 3♦, 4♦, 5♦, 6♦, 7♦, 8♦, 9♦,10♦, J♦, D♦, K♦, A♦',
+    2: '2♣, 3♣, 4♣, 5♣, 6♣,7♣, 8♣, 9♣, 10♣, J♣, D♣, K♣, A♣, 2♠, 3♠, 4♠, 5♠, 6♠,7♠, 8♠, 9♠, 10♠, J♠, D♠, K♠, A♠'}
+
 
 # methods
 def out_red(text):
@@ -82,17 +86,13 @@ def first_shuffle():  # первая раздача 4х карт
             dilerCurrentCards.append((get_kard_picture(card_number)))
 
 
-def print_card():
-    for i in playerCurrentCards:
-        i = str(i)
-        if "♥" or "♦" in i:
-            text = i
-            out_red(i)
-            print('красный', i)
-        else:
-            text = i
-            out_black(text)
-            print('черный', i)
+def print_card(temp_card_picture):
+    for i in temp_card_picture:
+        for k, j in dictCardColor.items():
+            if i in j and k == 1:
+                print(f"\033[31m\033[47m{i}\033[0m", sep=" ", end=' ')
+            elif i in j and k == 2:
+                print(f"\033[30m\033[47m{i}\033[0m", sep=" ", end=' ')
 
 
 def bet_input():
@@ -120,6 +120,21 @@ def get_kard_picture(card_number):
     return temp_card_picture.pop()
 
 
+def count_points():
+
+    for i in playerCurrentCards:
+        print(i)
+        for j, k in dictCardandPoints.items():
+            if k == i:
+                player_points += j
+                print(j)
+
+    for i in dilerCurrentCards:
+        for j, k in dictCardandPoints.items():
+            if k == i:
+                diler_points += j
+
+
 # end methods
 
 deposit_user_input = []
@@ -132,6 +147,8 @@ deposit_user_input = []
 if not fullStack:
     fill_random_stack()
 first_shuffle()
-print_card()
-print(playerCurrentCards)
-print(dilerCurrentCards)
+count_points()
+print_card(playerCurrentCards)
+print(f'-карты игрока,  очки : {player_points}')
+print_card(dilerCurrentCards)
+print(f'-карты дилера,  очки : {diler_points}')
